@@ -2,6 +2,7 @@ package com.mezza.authservice.application.service.impl;
 
 import java.util.Set;
 
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -43,8 +44,13 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         userRepository.save(user);
-        String token = jwtService.generateToken(user);
-        return new AuthResponse(token);
+        String accessToken = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
+        return AuthResponse.builder()
+            .accessToken(accessToken)
+            .refreshToken(refreshToken)
+            .build();
     }
 
     @Override
@@ -56,7 +62,33 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Invalid credentials");
         }
 
-        String token = jwtService.generateToken(user);
-        return new AuthResponse(token);
+        String accessToken = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+        return AuthResponse.builder()
+            .accessToken(accessToken)
+            .refreshToken(refreshToken)
+            .build();
+    }
+
+    @Override
+    public AuthResponse refreshToken(String refreshToken) {
+        if (!jwtService.isRefreshToken(refreshToken)) {
+            throw new RuntimeException("Invalid refresh token");
+        }
+
+        String username = jwtService.extractUsername(refreshToken);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (!jwtService.isTokenValid(refreshToken, user)) {
+            throw new RuntimeException("Refresh token is invalid or expired");
+        }
+
+        String newAccessToken = jwtService.generateToken(user);
+
+        return AuthResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 }

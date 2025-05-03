@@ -1,4 +1,5 @@
 package com.mezza.authservice.web.controller;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,6 +25,7 @@ public class AuthController {
     private final AuthService authService;
     private final TokenBlacklistService tokenBlacklistService;
 
+
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody AuthRequest request) {
         return ResponseEntity.ok(authService.register(request));
@@ -44,4 +46,11 @@ public class AuthController {
         }
         return ResponseEntity.ok().body("Logged out successfully.");
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refreshToken(@RequestBody Map<String, String> request) {
+        String refreshToken = request.get("refresh_token");
+        return ResponseEntity.ok(authService.refreshToken(refreshToken));
+    }
+
 }

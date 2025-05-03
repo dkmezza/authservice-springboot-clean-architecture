@@ -14,4 +14,7 @@ public class AuthRequest {
 
     @NotBlank
     private String password;
+
+    private String accessToken;
+    private String refreshToken;
 }

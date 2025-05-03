@@ -25,6 +25,8 @@ public class JwtService {
 
     private Key key;
 
+    private static final long REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000; // 7 days
+
     @PostConstruct
     public void init() {
         key = Keys.hmacShaKeyFor(secret.getBytes());
@@ -60,4 +62,29 @@ public class JwtService {
                 .parseClaimsJws(token)
                 .getBody();
     }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parserBuilder()
+            .setSigningKey(key)
+            .build()
+            .parseClaimsJws(token)
+            .getBody();
+    }
+
+    public boolean isRefreshToken(String token) {
+        Claims claims = extractAllClaims(token);
+        return "refresh".equals(claims.get("type"));
+    }
+    
+    public String generateRefreshToken(User user) {
+        return Jwts.builder()
+            .setSubject(user.getUsername())
+            .claim("type", "refresh")
+            .setIssuedAt(new Date())
+            .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
+            .signWith(key, SignatureAlgorithm.HS256)
+            .compact();
+    }
+    
+
 }
