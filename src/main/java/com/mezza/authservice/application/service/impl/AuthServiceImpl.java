@@ -15,6 +15,8 @@ import com.mezza.authservice.infrastructure.repository.UserRepository;
 import com.mezza.authservice.infrastructure.security.JwtService;
 import com.mezza.authservice.web.dto.AuthRequest;
 import com.mezza.authservice.web.dto.AuthResponse;
+import com.mezza.authservice.web.dto.UpdateProfileRequest;
+import com.mezza.authservice.web.dto.UserDetailsResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,6 +28,7 @@ public class AuthServiceImpl implements AuthService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    
 
     @Override
     public AuthResponse register(AuthRequest request) {
@@ -91,4 +94,23 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .build();
     }
+
+    @Override
+    public UserDetailsResponse updateProfile(UpdateProfileRequest request, User user) {
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setEmail(request.getEmail());
+        user.setPhoneNumber(request.getPhoneNumber());
+
+        userRepository.save(user);
+
+        return UserDetailsResponse.builder()
+                .username(user.getUsername())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .build();
+    }
+
 }

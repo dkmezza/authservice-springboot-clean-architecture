@@ -14,11 +14,12 @@ public class UserController {
 
     @GetMapping("/me")
     public UserDetailsResponse getUserDetails(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        return new UserDetailsResponse(
-                userDetails.getUsername(),
-                userDetails.getUser().getRoles().stream()
-                        .map(role -> role.getName().name())
-                        .collect(java.util.stream.Collectors.toSet())
-        );
+        return UserDetailsResponse.builder()
+            .username(userDetails.getUsername())
+            .firstName(userDetails.getUser().getFirstName())
+            .lastName(userDetails.getUser().getLastName())
+            .email(userDetails.getUser().getEmail())
+            .phoneNumber(userDetails.getUser().getPhoneNumber())
+            .build();
     }
 }
