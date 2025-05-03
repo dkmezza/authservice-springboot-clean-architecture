@@ -3,6 +3,7 @@ package com.mezza.authservice.application.service;
 import com.mezza.authservice.domain.model.User;
 import com.mezza.authservice.web.dto.AuthRequest;
 import com.mezza.authservice.web.dto.AuthResponse;
+import com.mezza.authservice.web.dto.ChangePasswordRequest;
 import com.mezza.authservice.web.dto.UpdateProfileRequest;
 import com.mezza.authservice.web.dto.UserDetailsResponse;
 
@@ -11,4 +12,5 @@ public interface AuthService {
     AuthResponse login(AuthRequest request);
     AuthResponse refreshToken(String refreshToken);
     UserDetailsResponse updateProfile(UpdateProfileRequest request, User user);
+    void changePassword(ChangePasswordRequest request, User user);
 }

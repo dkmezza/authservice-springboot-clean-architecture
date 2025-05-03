@@ -14,6 +14,7 @@ import com.mezza.authservice.application.service.TokenBlacklistService;
 import com.mezza.authservice.infrastructure.security.CustomUserDetails;
 import com.mezza.authservice.web.dto.AuthRequest;
 import com.mezza.authservice.web.dto.AuthResponse;
+import com.mezza.authservice.web.dto.ChangePasswordRequest;
 import com.mezza.authservice.web.dto.UpdateProfileRequest;
 import com.mezza.authservice.web.dto.UserDetailsResponse;
 
@@ -64,5 +65,16 @@ public class AuthController {
                                                              @AuthenticationPrincipal CustomUserDetails userDetails) {
         return ResponseEntity.ok(authService.updateProfile(request, userDetails.getUser()));
     }
+
+    @SecurityRequirement(name = "bearer-jwt")
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(
+        @RequestBody ChangePasswordRequest request,
+        @AuthenticationPrincipal CustomUserDetails userDetails) {
+        
+        authService.changePassword(request, userDetails.getUser());
+        return ResponseEntity.ok().body("Password changed successfully.");
+}
+
 
 }

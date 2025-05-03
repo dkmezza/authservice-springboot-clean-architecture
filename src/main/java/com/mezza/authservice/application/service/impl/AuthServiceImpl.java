@@ -2,11 +2,13 @@ package com.mezza.authservice.application.service.impl;
 
 import java.util.Set;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.mezza.authservice.application.service.AuthService;
+import com.mezza.authservice.application.service.TokenBlacklistService;
 import com.mezza.authservice.domain.model.Role;
 import com.mezza.authservice.domain.model.RoleType;
 import com.mezza.authservice.domain.model.User;
@@ -15,6 +17,7 @@ import com.mezza.authservice.infrastructure.repository.UserRepository;
 import com.mezza.authservice.infrastructure.security.JwtService;
 import com.mezza.authservice.web.dto.AuthRequest;
 import com.mezza.authservice.web.dto.AuthResponse;
+import com.mezza.authservice.web.dto.ChangePasswordRequest;
 import com.mezza.authservice.web.dto.UpdateProfileRequest;
 import com.mezza.authservice.web.dto.UserDetailsResponse;
 
@@ -28,6 +31,7 @@ public class AuthServiceImpl implements AuthService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final TokenBlacklistService tokenBlacklistService;
     
 
     @Override
@@ -111,6 +115,27 @@ public class AuthServiceImpl implements AuthService {
                 .email(user.getEmail())
                 .phoneNumber(user.getPhoneNumber())
                 .build();
+    }
+
+    @Override
+    public void changePassword(ChangePasswordRequest request, User user) {
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new RuntimeException("Old password is incorrect.");
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
+            throw new RuntimeException("New password and confirmation do not match.");
+        }
+
+        // Update the password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        // Blacklist the current token (logout)
+        String currentToken = SecurityContextHolder.getContext().getAuthentication()
+            .getCredentials().toString();
+
+        tokenBlacklistService.blacklistToken(currentToken);
     }
 
 }
