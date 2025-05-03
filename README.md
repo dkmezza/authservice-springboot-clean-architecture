@@ -101,4 +101,4 @@ MIT
 
 ## ✨ Author
 
-**David Mezza** — Backend Developer | Spring Boot Enthusiast
+**David Mezza** — Backend Engineer | Spring Boot Enthusiast
