@@ -19,17 +19,19 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName().name()))
-                .collect(Collectors.toList());
+                .map(role -> new SimpleGrantedAuthority(role.getName().name()))
+                .collect(Collectors.toSet());
     }
 
     @Override public String getPassword() { return user.getPassword(); }
     @Override public String getUsername() { return user.getUsername(); }
-
-    @Override public boolean isAccountNonExpired()     { return true; }
-    @Override public boolean isAccountNonLocked()      { return true; }
+    @Override public boolean isAccountNonExpired() { return true; }
+    @Override public boolean isAccountNonLocked() { return true; }
     @Override public boolean isCredentialsNonExpired() { return true; }
-    @Override public boolean isEnabled()               { return user.isEnabled(); }
+    @Override public boolean isEnabled() { return user.isEnabled(); }
 
-    public User getUser() { return user; }
+    public User getUser() {
+        return user;
+    }
 }
+

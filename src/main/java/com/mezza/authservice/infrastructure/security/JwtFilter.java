@@ -1,14 +1,14 @@
 package com.mezza.authservice.infrastructure.security;
 import java.io.IOException;
-import java.util.stream.Collectors;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.mezza.authservice.domain.model.User;
 import com.mezza.authservice.infrastructure.repository.UserRepository;
 
 import jakarta.servlet.FilterChain;
@@ -25,40 +25,36 @@ public class JwtFilter extends OncePerRequestFilter {
     private final UserRepository userRepository;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
+        final String jwt;
+        final String username;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authHeader.substring(7);
-        String username = jwtService.extractUsername(token);
+        jwt = authHeader.substring(7);
+        username = jwtService.extractUsername(jwt);
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            var user = userRepository.findByUsername(username)
-                    .orElse(null);
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-   
-            if (user != null && jwtService.isTokenValid(token, user)) {
-                var authorities = user.getRoles().stream()
-                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName().name()))
-                    .collect(Collectors.toList());
-            
-                var authToken = new UsernamePasswordAuthenticationToken(
-                    user.getUsername(), null, authorities);
-            
+            if (jwtService.isTokenValid(jwt, user)) {
+                CustomUserDetails userDetails = new CustomUserDetails(user);
+                UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
-            
         }
 
         filterChain.doFilter(request, response);
     }
 }
+
