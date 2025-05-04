@@ -121,5 +121,5 @@ MIT
 
 ## 👨‍💻 Author
 
-**David Mezza** — Backend Engineer | Spring Boot Enthusiast  
+**David Mezza** — Full Stack Engineer | Clean Code Advocate  
 [GitHub](https://github.com/dkmezza)
